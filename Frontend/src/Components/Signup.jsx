@@ -1,16 +1,42 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import Login from './Login'
 import { useForm } from "react-hook-form"
+import axios from 'axios'
+import toast from 'react-hot-toast'
 
 const Signup = () => {
+    const location=useLocation();
+    const navigate=useNavigate();
+    const from=location.state?.form?.pathname || "/";
     const {
         register,
         handleSubmit,
         formState: { errors },
     } = useForm()
 
-    const onSubmit = (data) => console.log(data)
+    const onSubmit = async (data) =>{
+        const userInfo={
+            fullname:data.fullname,
+            email:data.email, 
+            password:data.password
+        };
+        await axios.post("http://localhost:4001/user/signup",userInfo).then((res)=>{
+            console.log(res.data);
+            if(res.data){
+                // alert("Signup successfull");
+                toast.success("Signup successfull");
+                navigate(from,{replace:true});
+            };
+            localStorage.setItem("Users",JSON.stringify(res.data.user));//localstorage me data ko store kra rhe h taaki baad me use kr paye
+        }).catch((err)=>{
+           if(err.response){
+            console.log(err);
+            // alert("Error:"+ err.response.data.message );
+            toast.error("Error: "+ err.response.data.message);
+           }
+        });
+    };
 
     return (
         <div className='flex h-screen items-center justify-center bg-white'>
@@ -25,7 +51,7 @@ const Signup = () => {
 
                         <div className='mt-4 space-y-2'>
                             <label className="text-black">Name</label><br />
-                            <input type="text" placeholder='Enter your fullname' className='w-80 px-3 py-1 text-black bg-white border rounded-md outline-none'  {...register("name", { required: true })} /> <br />
+                            <input type="text" placeholder='Enter your fullname' className='w-80 px-3 py-1 text-black bg-white border rounded-md outline-none'  {...register("fullname", { required: true })} /> <br />
                             {errors.email && <span className='text-sm text-red-500'>This field is required</span>}
                         </div>
 
